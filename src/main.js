@@ -57,6 +57,17 @@ listen('initialize_setup_error', (event) => {
 listen('initialize_setup_completed', () => {
 	infoAlertModal.style.display = "none";
 });
+listen('play_finished', () => {
+	// Change button back to play icon
+	playButton.innerHTML = play_svg;
+	playButton.classList.toggle("removeleft");
+
+	// Stop animation
+	waveBars.forEach(bar => {
+		bar.style.animation = 'none';
+		bar.style.backgroundColor = 'var(--accent-secondary)';
+	});
+});
 
 invokeAPI("initialize_setup");
 const consoleElement = document.getElementById("console");
@@ -118,12 +129,6 @@ playButton.addEventListener('click', function () {
 		waveBars.forEach(bar => {
 			bar.style.animation = 'none';
 			bar.style.backgroundColor = 'var(--accent-secondary)';
-
-			// Reset to original random heights
-			// setTimeout(() => {
-			//     const randomHeight = Math.floor(Math.random() * 60) + 30;
-			//     bar.style.height = `${randomHeight}px`;
-			// }, 100);
 		});
 	}
 

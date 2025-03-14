@@ -3,6 +3,8 @@ use std::fs::File;
 use std::io::BufReader;
 use std::sync::Mutex;
 use crate::setup::EnvPaths;
+use crate::utils::send_to_frontend;
+use tauri::AppHandle;
 
 pub struct AudioState {
     pub sink: Mutex<Option<Sink>>,
@@ -24,7 +26,7 @@ pub fn initialize_audio() -> AudioState {
 }
 
 #[tauri::command]
-pub fn play_audio(state: tauri::State<AudioState>) -> Result<(), String> {
+pub fn play_audio(app: AppHandle, state: tauri::State<AudioState>) -> Result<(), String> {
     let paths = EnvPaths::new();
     let file_path = paths.output_file;
     println!("Playing audio: {}", file_path.display());
@@ -81,7 +83,7 @@ pub fn play_audio(state: tauri::State<AudioState>) -> Result<(), String> {
     // Prevent immediate return to keep context alive
     std::thread::sleep(std::time::Duration::from_millis(100));
     println!("Play command completed");
-    
+
     Ok(())
 }
 
