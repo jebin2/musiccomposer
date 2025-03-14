@@ -1,14 +1,14 @@
 use rodio::{Decoder, OutputStream, OutputStreamHandle, Sink};
 use std::fs::File;
 use std::io::BufReader;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use crate::setup::EnvPaths;
 use crate::utils::send_to_frontend;
 use tauri::AppHandle;
 
 pub struct AudioState {
-    pub sink: Mutex<Option<Sink>>,
-    pub stream_handle: OutputStreamHandle, // No longer wrapped in Mutex<Option>
+    pub sink: Arc<Mutex<Option<Arc<Sink>>>>,
+    pub stream_handle: OutputStreamHandle,
 }
 
 pub fn initialize_audio() -> AudioState {
@@ -20,8 +20,8 @@ pub fn initialize_audio() -> AudioState {
     Box::leak(Box::new(stream));
     
     AudioState {
-        sink: Mutex::new(None),
-        stream_handle, // Directly store the handle
+        sink: Arc::new(Mutex::new(None)),
+        stream_handle,
     }
 }
 
@@ -30,10 +30,6 @@ pub fn play_audio(app: AppHandle, state: tauri::State<AudioState>) -> Result<(),
     let paths = EnvPaths::new();
     let file_path = paths.output_file;
     println!("Playing audio: {}", file_path.display());
-    
-    // Access the stream handle with explicit error checking
-    let sink = Sink::try_new(&state.stream_handle)
-        .map_err(|e| format!("Error creating sink: {}", e))?;
     
     // Open and decode file with detailed logging
     let file = match File::open(&file_path) {
@@ -70,26 +66,50 @@ pub fn play_audio(app: AppHandle, state: tauri::State<AudioState>) -> Result<(),
     sink.play();
     println!("Playback initiated");
     
-    // Keep sink alive by storing it in state
+    // Clone the shared state for the thread
+    let sink_state = Arc::clone(&state.sink);
+    
+    // Store the sink in state before creating the monitoring thread
     println!("Storing sink in state...");
-    match state.sink.lock() {
+    match sink_state.lock() {
         Ok(mut sink_lock) => {
-            *sink_lock = Some(sink);
+            *sink_lock = Some(Arc::new(sink));
             println!("Sink stored in state");
         },
         Err(e) => return Err(format!("Failed to lock sink state: {}", e)),
     }
     
-    // Prevent immediate return to keep context alive
-    std::thread::sleep(std::time::Duration::from_millis(100));
+    // Clone the app handle and state reference for the monitoring thread
+    let app_handle = app.clone();
+    let thread_sink_state = Arc::clone(&sink_state);
+    
+    // Create a thread to monitor when playback is finished
+    std::thread::spawn(move || {
+        // Get access to the sink for monitoring
+        let maybe_sink: Option<Arc<Sink>> = {
+            match thread_sink_state.lock() {
+                Ok(sink_lock) => sink_lock.as_ref().map(|s| Arc::clone(s)),
+                Err(_) => None,
+            }
+        };
+        
+        if let Some(monitor_sink) = maybe_sink {
+            // Wait for the sink to finish
+            monitor_sink.sleep_until_end();
+            println!("Audio playback completed");
+            
+            // Send a message to the frontend
+            send_to_frontend(&app_handle, "audio-playback-finished".to_string(), "play_finished");
+        }
+    });
+    
     println!("Play command completed");
-
     Ok(())
 }
 
 #[tauri::command]
 pub fn pause_audio(state: tauri::State<AudioState>) -> Result<(), String> {
-    let sink_lock = state.sink.lock().unwrap();
+    let sink_lock = state.sink.lock().map_err(|e| format!("Failed to lock sink: {}", e))?;
     
     if let Some(sink) = sink_lock.as_ref() {
         sink.pause();
@@ -101,7 +121,7 @@ pub fn pause_audio(state: tauri::State<AudioState>) -> Result<(), String> {
 
 #[tauri::command]
 pub fn stop_audio(state: tauri::State<AudioState>) -> Result<(), String> {
-    let mut sink_lock = state.sink.lock().unwrap();
+    let mut sink_lock = state.sink.lock().map_err(|e| format!("Failed to lock sink: {}", e))?;
     
     if sink_lock.is_some() {
         // Clear the sink - this will stop playback
