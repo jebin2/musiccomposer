@@ -1,0 +1,608 @@
+/* TextTunes - Neobrutalism Redesign */
+:root {
+	--bg-primary: #0f0f0f;
+	--bg-secondary: #191919;
+	--bg-tertiary: #232323;
+	--text-primary: #ffffff;
+	--text-secondary: #b0b0b0;
+	--border-color: #404040;
+	--accent-color: #00ffbb;
+	--accent-secondary: #3d3dff;
+	--button-shadow: 4px 4px 0px #000000;
+	--border-radius: 2px;
+	--box-shadow: 4px 4px 0px #000000;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	-webkit-font-smoothing: antialiased;
+}
+
+html,
+body {
+	height: 100vh;
+	background: var(--bg-primary);
+	color: var(--text-primary);
+	line-height: 1.4;
+}
+
+header {
+	text-align: center;
+	padding: 1.5rem 0;
+	position: relative;
+}
+
+.container {
+	height: 100vh;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+	max-width: 1000px;
+	padding: 1.5rem;
+}
+
+.title {
+	font-size: 3.5rem;
+	margin-bottom: 0.5rem;
+	font-weight: 900;
+	letter-spacing: -0.05em;
+	transform: rotate(-1deg);
+	display: inline-block;
+	position: relative;
+	text-align: center;
+	margin: 0 auto;
+}
+
+.title::after {
+	content: "";
+	position: absolute;
+	width: 100px;
+	height: 12px;
+	background-color: var(--accent-secondary);
+	bottom: -5px;
+	left: calc(50% - 50px);
+	z-index: -1;
+	transform: rotate(2deg);
+}
+
+.subtitle {
+	color: var(--accent-color);
+	font-size: 1.3rem;
+	margin: 0.5rem auto 2rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	text-align: center;
+}
+
+.input-area {
+	flex: 0 0 auto;
+	max-width: 1000px;
+	margin: 0 auto;
+	width: 100%;
+	padding: 1.5rem;
+	border: 4px solid var(--text-primary);
+	box-shadow: var(--box-shadow);
+	background-color: var(--bg-secondary);
+	margin-bottom: 2rem;
+	position: relative;
+	height: 350px;
+}
+
+.input-area::before {
+	content: "INPUT";
+	position: absolute;
+	top: -15px;
+	left: 20px;
+	background-color: var(--bg-primary);
+	padding: 0 10px;
+	font-weight: 800;
+	color: var(--accent-color);
+	font-size: 0.9rem;
+}
+
+.input-group {
+	height: 70%;
+	display: grid;
+	grid-template-columns: 1fr 0fr 1fr;
+	/* gap: 1.2rem; */
+	margin-bottom: 1.5rem;
+	align-items: center;
+}
+
+.section-label {
+	position: relative;
+	margin-bottom: 1.5rem;
+	font-weight: 800;
+	font-size: 0.9rem;
+	background-color: var(--bg-primary);
+	padding: 0 10px;
+	display: inline-block;
+	z-index: 2;
+}
+
+.section-label:nth-of-type(1) {
+	color: var(--accent-color);
+}
+
+.section-label:nth-of-type(2) {
+	color: var(--accent-secondary);
+	margin-top: 2rem;
+}
+
+.app-container {
+	display: flex;
+	gap: 1.5rem;
+	padding: 1.5rem;
+	position: relative;
+	margin-bottom: 1.5rem;
+}
+
+.app-container::before {
+	content: "";
+	position: absolute;
+	top: -2px;
+	left: 0;
+	right: 0;
+	height: 4px;
+	z-index: 1;
+}
+
+.input-section,
+.output-section {
+	height: 100%;
+}
+
+.divider {
+	padding: 1rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.label {
+	color: var(--text-primary);
+	font-size: 1.1rem;
+	font-weight: 800;
+	letter-spacing: 0.5px;
+	text-transform: uppercase;
+	margin-bottom: 0.8rem;
+}
+
+.text-input {
+	background: var(--bg-tertiary);
+	border: 3px solid var(--text-primary);
+	color: var(--text-primary);
+	padding: 1rem;
+	border-radius: var(--border-radius);
+	transition: all 0.2s ease;
+	font-weight: 600;
+	font-size: 1rem;
+	resize: none;
+	height: 100%;
+	width: 100%;
+}
+
+.text-input:focus {
+	border-color: var(--accent-color);
+	outline: none;
+	transform: translate(-3px, -3px);
+	box-shadow: var(--button-shadow);
+}
+
+.convert-button {
+	cursor: pointer;
+	background: var(--accent-secondary);
+	border: 3px solid #000000;
+	color: #000000;
+	padding: 2rem;
+	border-radius: 50px;
+	transition: all 0.2s ease;
+	font-weight: 800;
+	box-shadow: var(--button-shadow);
+	position: relative;
+	font-size: 1.2rem;
+	width: 50px;
+	height: 50px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.convert-button:hover {
+	transform: translate(2px, 2px);
+	box-shadow: 1px 1px 0px #000000;
+}
+
+.convert-button:active {
+	transform: translate(4px, 4px);
+	box-shadow: none;
+}
+
+.player-container {
+	background: var(--bg-tertiary);
+	border: 3px solid var(--text-primary);
+	border-radius: var(--border-radius);
+	padding: 1rem;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+}
+
+.play-button {
+	cursor: pointer;
+	background: var(--accent-color);
+	border: 3px solid #000000;
+	color: #000000;
+	width: 60px;
+	height: 60px;
+	transition: all 0.2s ease;
+	font-weight: 800;
+	box-shadow: var(--button-shadow);
+	position: relative;
+	margin-bottom: 1.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.2rem;
+	opacity: 0.8;
+	z-index: 1;
+	border-radius: 50px;
+	padding: 2rem;
+}
+
+.play-button:hover {
+	transform: translate(2px, 2px);
+	box-shadow: 1px 1px 0px #000000;
+}
+
+.play-button:active {
+	transform: translate(4px, 4px);
+	box-shadow: none;
+}
+
+button svg,
+.play-button svg {
+	position: absolute;
+	width: 50%;
+	left: 18px;
+}
+
+button svg,
+.play-button.removeleft svg {
+	left: initial;
+}
+
+.play-button-wave {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.play-wave-bar {
+	position: absolute;
+	bottom: 30%;
+	width: 4px;
+	background-color: #000000;
+	border-radius: 1px;
+	animation: playWave 1s infinite;
+}
+
+.output-area {
+	max-width: 1000px;
+	width: 100%;
+	margin: 0 auto;
+	flex: 1;
+	background: var(--bg-secondary);
+	border-radius: var(--border-radius);
+	padding: 1.5rem;
+	max-height: 22vh;
+	border: 4px solid var(--text-primary);
+	box-shadow: var(--box-shadow);
+	position: relative;
+}
+
+.output-area::before {
+	content: "OUTPUT";
+	position: absolute;
+	top: -15px;
+	left: 20px;
+	background-color: var(--bg-primary);
+	padding: 0 10px;
+	font-weight: 800;
+	color: var(--accent-secondary);
+	font-size: 0.9rem;
+}
+
+.output-area h2 {
+	padding: 0.5rem;
+	font-weight: 900;
+	color: var(--text-primary);
+	border-bottom: 3px solid var(--border-color);
+	margin-bottom: 1rem;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
+#console::-webkit-scrollbar {
+	width: 12px;
+}
+
+#console::-webkit-scrollbar-track {
+	background: #000000;
+	border: 2px solid var(--accent-color);
+}
+
+#console::-webkit-scrollbar-thumb {
+	background: var(--accent-color);
+	border-radius: 0;
+	border: 2px solid #000000;
+}
+
+#console::-webkit-scrollbar-thumb:hover {
+	background: var(--accent-secondary);
+}
+
+#console p {
+	margin-bottom: 0.5rem;
+	padding-left: 1rem;
+	border-left: 3px solid var(--accent-secondary);
+}
+
+#console p span {
+	font-weight: 700;
+}
+
+.config {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6rem;
+	margin-bottom: 1.5rem;
+	align-items: center;
+}
+
+@keyframes playWave {
+
+	0%,
+	100% {
+		height: 20%;
+	}
+
+	50% {
+		height: 70%;
+	}
+}
+
+.wave-container {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 60px;
+	gap: 5px;
+}
+
+.wave-bar {
+	width: 6px;
+	height: 90%;
+	background-color: var(--accent-secondary);
+	border-radius: 1px;
+	transition: height 0.2s ease;
+}
+
+/* Random heights for wave bars to create visualization effect */
+.wave-bar:nth-child(1) {
+	height: 30px;
+}
+
+.wave-bar:nth-child(2) {
+	height: 50px;
+}
+
+.wave-bar:nth-child(3) {
+	height: 80px;
+}
+
+.wave-bar:nth-child(4) {
+	height: 40px;
+}
+
+.wave-bar:nth-child(5) {
+	height: 70px;
+}
+
+.wave-bar:nth-child(6) {
+	height: 90px;
+}
+
+.wave-bar:nth-child(7) {
+	height: 30px;
+}
+
+.wave-bar:nth-child(8) {
+	height: 40px;
+}
+
+.wave-bar:nth-child(9) {
+	height: 80px;
+}
+
+.wave-bar:nth-child(10) {
+	height: 30px;
+}
+
+.wave-bar:nth-child(11) {
+	height: 50px;
+}
+
+.wave-bar:nth-child(12) {
+	height: 70px;
+}
+
+.wave-bar:nth-child(13) {
+	height: 30px;
+}
+
+.wave-bar:nth-child(14) {
+	height: 40px;
+}
+
+.wave-bar:nth-child(15) {
+	height: 80px;
+}
+
+.wave-bar:nth-child(16) {
+	height: 30px;
+}
+
+.wave-bar:nth-child(17) {
+	height: 50px;
+}
+
+.wave-bar:nth-child(18) {
+	height: 80px;
+}
+
+.wave-bar:nth-child(19) {
+	height: 40px;
+}
+
+.wave-bar:nth-child(20) {
+	height: 70px;
+}
+
+.wave-bar:nth-child(21) {
+	height: 90px;
+}
+
+.wave-bar:nth-child(22) {
+	height: 30px;
+}
+
+.wave-bar:nth-child(23) {
+	height: 40px;
+}
+
+.wave-bar:nth-child(24) {
+	height: 80px;
+}
+
+.wave-bar:nth-child(25) {
+	height: 30px;
+}
+
+.wave-bar:nth-child(26) {
+	height: 50px;
+}
+
+.wave-bar:nth-child(27) {
+	height: 70px;
+}
+
+.wave-bar:nth-child(28) {
+	height: 30px;
+}
+
+.wave-bar:nth-child(29) {
+	height: 40px;
+}
+
+.wave-bar:nth-child(30) {
+	height: 80px;
+}
+
+.button {
+	cursor: pointer;
+	background: var(--accent-color);
+	border: 3px solid #000000;
+	color: #000000;
+	padding: 1rem;
+	border-radius: var(--border-radius);
+	transition: all 0.2s ease;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	box-shadow: var(--button-shadow);
+	position: relative;
+	font-size: 1.1rem;
+	margin-bottom: 1.5rem;
+}
+
+.button:hover {
+	transform: translate(2px, 2px);
+	box-shadow: 1px 1px 0px #000000;
+}
+
+.button:active {
+	transform: translate(4px, 4px);
+	box-shadow: none;
+}
+
+.output-box {
+	background-color: var(--bg-secondary);
+	border: 4px solid var(--text-primary);
+	box-shadow: var(--box-shadow);
+	padding: 1.5rem;
+	height: 200px;
+	overflow-y: auto;
+	border-radius: var(--border-radius);
+	font-family: 'Roboto Mono', monospace;
+	color: var(--text-primary);
+	font-size: 1rem;
+	position: relative;
+}
+
+.output-box::-webkit-scrollbar {
+	width: 12px;
+}
+
+.output-box::-webkit-scrollbar-track {
+	background: #000000;
+	border: 2px solid var(--accent-color);
+}
+
+.output-box::-webkit-scrollbar-thumb {
+	background: var(--accent-color);
+	border-radius: 0;
+	border: 2px solid #000000;
+}
+
+.output-box::-webkit-scrollbar-thumb:hover {
+	background: var(--accent-secondary);
+}
+
+@media (max-width: 768px) {
+	.app-container {
+		flex-direction: column;
+	}
+
+	.title {
+		font-size: 2.5rem;
+	}
+
+	.subtitle {
+		font-size: 1.1rem;
+	}
+
+	.convert-button {
+		margin: 1rem 0;
+		align-self: center;
+	}
+
+	.text-input,
+	.player-container {
+		height: 150px;
+	}
+}
