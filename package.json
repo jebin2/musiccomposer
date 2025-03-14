@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "tauri": "tauri"
+    "tauri": "tauri",
+		"push": "git push && git checkout main && git pull origin main && git checkout release && git merge main && git push origin release && git checkout main"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"
