@@ -1,4 +1,4 @@
-use rodio::{Decoder, OutputStream, OutputStreamHandle, Sink};
+use rodio::{Decoder, OutputStream, OutputStreamHandle, Sink, Source};
 use std::fs::File;
 use std::io::BufReader;
 use std::sync::{Arc, Mutex};
@@ -40,13 +40,16 @@ pub fn play_audio(app: AppHandle, state: tauri::State<AudioState>) -> Result<(),
         Err(e) => return Err(format!("Error opening file: {}", e)),
     };
     
-    let source = match Decoder::new(BufReader::new(file)) {
+    let source = match Decoder::new_wav(BufReader::new(file)) {
         Ok(s) => {
             println!("Audio decoded successfully");
             s
         },
         Err(e) => return Err(format!("Error decoding audio: {}", e)),
     };
+    // let source = source.convert_samples::<f32>().low_pass(44100); // Convert samples to f32 and cut frequencies above 10kHz
+    let source_sample_rate = source.sample_rate();
+    println!("Source sample rate: {}", source_sample_rate);
     
     // Create sink with explicit error handling
     println!("Creating sink...");
