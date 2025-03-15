@@ -1,10 +1,8 @@
 use std::env;
 use std::fs;
-use std::process::{Command, Stdio};
-use std::io::{BufRead, BufReader};
+use std::process::Command;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
-use serde_json::Value;
 
 use crate::utils::{send_to_frontend, execute_command};
 use crate::fluidsynth_config::install_fluidsynth;

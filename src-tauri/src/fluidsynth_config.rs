@@ -1,6 +1,5 @@
 use elevated_command::Command;
 use std::process::Command as StdCommand;
-use anyhow::{Result, Error};
 use tauri::{AppHandle, Emitter, Manager};
 use crate::utils::send_to_frontend;
 
@@ -237,7 +236,6 @@ fn is_fluidsynth_installed() -> bool {
 
 // use elevated_command::Command;
 // use std::process::Command as StdCommand;
-// use anyhow::{Result, Error};
 // use tauri::{AppHandle, Emitter};
 
 // pub fn send_to_frontend(app_handle: &AppHandle, message: String, event_type: &str) {
