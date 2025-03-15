@@ -23,7 +23,15 @@
 			}
 		],
 		"security": {
-			"csp": null
+			"csp": "defaultSrc 'self' customprotocol: asset:; connectSrc ipc: http://ipc.localhost; fontSrc https://fonts.gstatic.com; imgSrc 'self' asset: http://asset.localhost blob: data:; styleSrc 'unsafe-inline' 'self' https://fonts.googleapis.com",
+			"assetProtocol": {
+				"enable": true,
+				"scope": [
+					"$HOME/**",
+					"/tmp/snaphound/**",
+					"/**"
+				]
+			}
 		}
 	},
 	"bundle": {
