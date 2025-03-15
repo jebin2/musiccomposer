@@ -95,21 +95,34 @@ async fn setup_python(app: &AppHandle, paths: &EnvPaths) -> Result<String, Strin
 }
 
 async fn install_pip_package(app: &AppHandle, paths: &EnvPaths, package_name: &str, git_path: &str) -> Result<(), String> {
-    let check_installed = Command::new(&paths.python)
-        .args(&["-m", "pip", "show", package_name])
-        .output();
+    let mut command_check = Command::new(&paths.python);
+    command_check.args(&["-m", "pip", "show", package_name]);
 
-    if let Ok(output) = check_installed {
-        if output.status.success() {
-            send_to_frontend(app, "Music Composer is already installed".to_string(), "initialize_setup_processing");
-            return Ok(()); // Return early if it's installed
+    match execute_command(app, &mut command_check, format!("check_pip_package: {}", package_name)) {
+        Ok(mut child) => {
+            match child.wait() {
+                Ok(exit_status) if exit_status.success() => {
+                    send_to_frontend(app, "Music Composer is already installed".to_string(), "initialize_setup_processing");
+                    return Ok(());
+                },
+                Ok(_) => {},
+                Err(e) => {
+                    let error_msg = format!("Failed to check if package is installed: {}", e);
+                    send_to_frontend(app, error_msg.clone(), "initialize_setup_warning");
+                }
+            }
+        },
+        Err(e) => {
+            let error_msg = format!("Failed to check if package is installed: {}", e);
+            send_to_frontend(app, error_msg.clone(), "initialize_setup_warning");
         }
     }
 
-    let mut command = Command::new(&paths.python);
-    command.args(&["-m", "pip", "install", git_path]);
+    // Proceed with installation
+    let mut command_install = Command::new(&paths.python);
+    command_install.args(&["-m", "pip", "install", git_path]);
 
-    match execute_command(app, &mut command, format!("install_pip_package: {}",package_name)) {
+    match execute_command(app, &mut command_install, format!("install_pip_package: {}", package_name)) {
         Ok(mut child) => match child.wait() {
             Ok(exit_status) if exit_status.success() => {
                 send_to_frontend(app, "Pip Package installed successfully".to_string(), "initialize_setup_processing");
