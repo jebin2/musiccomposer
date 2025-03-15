@@ -9,7 +9,7 @@ pub async fn save_config(app: AppHandle, api_key: String, system_prompt: String)
     let paths = EnvPaths::new();
 
     // Overwrite env file
-    let env_string = format!("GEMINI_API_KEYS=\"{api_key}\"\nOUTPUT_WAV=\"output.wav\"");
+    let env_string = format!("CUSTOM_LOGGER_PLAY_ERROR_SOUND=\"False\"\nGEMINI_API_KEYS=\"{api_key}\"\nOUTPUT_WAV=\"output.wav\"");
     fs::write(&paths.env, env_string).map_err(|e| e.to_string())?;
 
     // Overwrite config file with JSON
