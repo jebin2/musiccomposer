@@ -126,11 +126,15 @@ pub fn pause_audio(state: tauri::State<AudioState>) -> Result<(), String> {
 pub fn stop_audio(state: tauri::State<AudioState>) -> Result<(), String> {
     let mut sink_lock = state.sink.lock().map_err(|e| format!("Failed to lock sink: {}", e))?;
     
-    if sink_lock.is_some() {
-        // Clear the sink - this will stop playback
+    if let Some(sink) = sink_lock.as_ref() {
+        // First stop the playback
+        sink.stop();
+        println!("Audio playback stopped.");
+        
+        // Then clear the sink reference
         *sink_lock = None;
-        Ok(())
     } else {
-        Err("No audio is currently playing".to_string())
+        println!("No audio is playing.");
     }
+    Ok(())
 }
