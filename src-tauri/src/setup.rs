@@ -64,22 +64,31 @@ pub struct ResourcePaths {
 }
 
 impl ResourcePaths {
-    pub fn new() -> Self {
-        let python = PathBuf::from("bin/dependency/venv");
-        let config = PathBuf::from("bin/dependency/config.json");
-        let main_py = PathBuf::from("bin/dependency/main.py");
+    pub fn new(app: AppHandle) -> Self {
+        let python_path = PathBuf::from("bin/dependency/venv");
+        let config_path = PathBuf::from("bin/dependency/config.json");
+        let main_py_path = PathBuf::from("bin/dependency/main.py");
         let env = PathBuf::from("bin/dependency/.env");
         // let soundfont = PathBuf::from("bin/dependency/FluidR3_GM.sf2");
 
-        let fluidsynth = if cfg!(target_os = "windows") {
+        let fluidsynth_path = if cfg!(target_os = "windows") {
             PathBuf::from("bin/dependency/fluidsynth.exe")
         } else {
             PathBuf::new()
         };
-
+        
+        let python = app.path().resolve(&python_path, tauri::path::BaseDirectory::Resource)
+            .expect("Failed to resolve python path");
+        let config = app.path().resolve(&config_path, tauri::path::BaseDirectory::Resource)
+            .expect("Failed to resolve config path");
+        let main_py = app.path().resolve(&main_py_path, tauri::path::BaseDirectory::Resource)
+            .expect("Failed to resolve main.py path");
+        let fluidsynth = app.path().resolve(&fluidsynth_path, tauri::path::BaseDirectory::Resource)
+            .expect("Failed to resolve fluidsynth path");
+        
         Self {
-			python,
-			config,
+            python,
+            config,
             main_py,
             fluidsynth,
             env,
@@ -183,7 +192,7 @@ async fn setup_config(app: &AppHandle, paths: &EnvPaths, resource_paths: &Resour
 #[tauri::command]
 pub async fn initialize_setup(app: AppHandle) {
     let paths = EnvPaths::new();
-    let resource_paths = ResourcePaths::new();
+    let resource_paths = ResourcePaths::new(app.clone());
 
     if let Ok(message) = setup_python(&app, &paths, &resource_paths).await {
         if message == "already installed.".to_string() {
