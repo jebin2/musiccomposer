@@ -134,8 +134,15 @@ async fn install_pip_package(app: &AppHandle, paths: &EnvPaths, package_name: &s
 }
 
 async fn copy_resource(app: &AppHandle, source: &PathBuf, destination: &PathBuf) -> Result<String, String> {
-    let mut command = Command::new("cp");
-    command.args(&["-r", source.to_str().unwrap(), destination.to_str().unwrap()]);
+    let mut command = if cfg!(target_os = "windows") {
+        let mut cmd = Command::new("xcopy");
+        cmd.args(&[source.to_str().unwrap(), destination.to_str().unwrap(), "/E", "/I"]);
+        cmd
+    } else {
+        let mut cmd = Command::new("cp");
+        cmd.args(&["-r", source.to_str().unwrap(), destination.to_str().unwrap()]);
+        cmd
+    };
 
     match execute_command(app, &mut command, "copy_resource".to_string()) {
         Ok(mut child) => {
