@@ -86,7 +86,7 @@ pub async fn send_command(app: &AppHandle, command: &str) {
             if let Some(stdin) = child.stdin.as_mut() {
                 if let Err(e) = writeln!(stdin, "{}", command) {
                     println!("Failed to write to Python process: {}", e);
-                    send_to_frontend(app, format!("Failed to write to Python process: {}", e), "error");
+                    // send_to_frontend(app, format!("Failed to write to Python process: {}", e), "error");
                     true // Start new process because write failed
                 } else {
                     false // Command sent successfully, no need to start new process

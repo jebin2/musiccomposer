@@ -1,8 +1,9 @@
 use std::env;
 use std::fs;
 use std::process::Command;
-use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
+use std::path::{Path, PathBuf};
+use walkdir::WalkDir;
 
 use crate::utils::{send_to_frontend, execute_command};
 use crate::fluidsynth_config::install_fluidsynth;
@@ -134,41 +135,64 @@ async fn install_pip_package(app: &AppHandle, paths: &EnvPaths, package_name: &s
 }
 
 async fn copy_resource(app: &AppHandle, source: &PathBuf, destination: &PathBuf) -> Result<String, String> {
-    let mut command = if cfg!(target_os = "windows") {
-        let mut cmd = Command::new("xcopy");
-        cmd.args(&[source.to_str().unwrap(), destination.to_str().unwrap(), "/E", "/I"]);
-        cmd
-    } else {
-        let mut cmd = Command::new("cp");
-        cmd.args(&["-r", source.to_str().unwrap(), destination.to_str().unwrap()]);
-        cmd
-    };
-
-    match execute_command(app, &mut command, "copy_resource".to_string()) {
-        Ok(mut child) => {
-            match child.wait() {
-                Ok(exit_status) if exit_status.success() => {
-                    send_to_frontend(app, "Copy completed successfully.".to_string(), "initialize_setup_processing");
-                    Ok("Done.".to_string())
-                }
-                Ok(exit_status) => {
-                    let error_msg = format!("Copy failed with status: {} {}", exit_status, source.display());
-                    send_to_frontend(app, error_msg.clone(), "initialize_setup_error");
-                    Err(error_msg)
-                }
-                Err(e) => {
-                    let error_msg = format!("Failed to wait for copy process: {}", e);
-                    send_to_frontend(app, error_msg.clone(), "initialize_setup_error");
-                    Err(error_msg)
-                }
+    if source.is_file() {
+        // For file copying, ensure destination directory exists
+        if let Some(parent) = destination.parent() {
+            if let Err(e) = fs::create_dir_all(parent) {
+                return Err(format!("Failed to create parent directory: {}", e));
             }
         }
-        Err(e) => {
-            let error_msg = format!("Failed to start copy process: {}", e);
-            send_to_frontend(app, error_msg.clone(), "error");
-            Err(error_msg)
+        
+        match fs::copy(source, destination) {
+            Ok(_) => {
+                send_to_frontend(app, format!("File copied successfully from {:?} to {:?}", source, destination), "initialize_setup_processing");
+                Ok("File copied successfully".to_string())
+            },
+            Err(e) => Err(format!("Failed to copy file: {}", e))
+        }
+    } else if source.is_dir() {
+        // For directory copying, we need to preserve the directory name
+        let source_name = source.file_name()
+            .ok_or_else(|| "Source directory has no name".to_string())?;
+        
+        // Create the destination with the source directory name
+        let full_destination = destination.join(source_name);
+        
+        // Ensure the destination directory exists
+        if let Err(e) = fs::create_dir_all(&full_destination) {
+            return Err(format!("Failed to create destination directory: {}", e));
+        }
+        
+        match copy_directory(source, &full_destination) {
+            Ok(_) => {
+                send_to_frontend(app, format!("Directory copied successfully from {:?} to {:?}", source, full_destination), "initialize_setup_processing");
+                Ok("Directory copied successfully".to_string())
+            },
+            Err(e) => Err(format!("Failed to copy directory: {}", e))
+        }
+    } else {
+        Err(format!("Source does not exist or is not accessible: {:?}", source))
+    }
+}
+
+/// Recursively copies a directory from `src` to `dst`, maintaining full structure
+fn copy_directory(src: &Path, dst: &Path) -> std::io::Result<()> {
+    for entry in WalkDir::new(src) {
+        let entry = entry?;
+        let rel_path = entry.path().strip_prefix(src).unwrap_or_else(|_| Path::new("")); // Get relative path
+        let dest_path = dst.join(rel_path); // Preserve structure
+
+        if entry.file_type().is_dir() {
+            fs::create_dir_all(&dest_path)?; // Create directory if it doesn't exist
+        } else {
+            // Ensure parent directory exists before copying
+            if let Some(parent) = dest_path.parent() {
+                fs::create_dir_all(parent)?;
+            }
+            fs::copy(entry.path(), &dest_path)?; // Copy file
         }
     }
+    Ok(())
 }
 
 async fn setup_config(app: &AppHandle, paths: &EnvPaths) -> Result<String, String> {
