@@ -8,6 +8,6 @@
 		"push": "git push && git checkout main && git pull origin main && git checkout release && git merge main && git push origin release && git checkout main"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2"
+		"@tauri-apps/cli": "^2.2.7"
   }
 }

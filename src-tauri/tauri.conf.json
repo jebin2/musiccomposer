@@ -11,7 +11,7 @@
 		"withGlobalTauri": true,
 		"windows": [
 			{
-				"title": "musiccomposer",
+				"title": "Text Tunes",
 				"width": 1280,
 				"height": 720,
 				"backgroundColor": "#000000",
@@ -19,19 +19,11 @@
 				"decorations": true,
 				"transparent": true,
 				"center": true,
-				"devtools": true
+				"devtools": false
 			}
 		],
 		"security": {
-			"csp": "default-src 'self' customprotocol: asset:; connect-src ipc: http://ipc.localhost; font-src https://fonts.gstatic.com; img-src 'self' asset: http://asset.localhost blob: data:; style-src 'unsafe-inline' 'self' https://fonts.googleapis.com; media-src 'self' asset: http://asset.localhost;",
-			"assetProtocol": {
-				"enable": true,
-				"scope": [
-					"$HOME/**",
-					"/tmp/musiccomposer/**",
-					"/**"
-				]
-			}
+			"csp": null
 		}
 	},
 	"bundle": {
@@ -50,20 +42,6 @@
 		"windows": {
 			"webviewInstallMode": {
 				"type": "downloadBootstrapper"
-			}
-		},
-		"linux": {
-			"appimage": {
-				"bundleMediaFramework": true,
-				"files": {}
-			},
-			"deb": {
-				"files": {}
-			},
-			"rpm": {
-				"epoch": 0,
-				"files": {},
-				"release": "1"
 			}
 		}
 	}
