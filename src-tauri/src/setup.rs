@@ -54,59 +54,46 @@ impl EnvPaths {
     }
 }
 
-pub struct ResourcePaths {
-    pub python: PathBuf,
-    pub config: PathBuf,
-    pub main_py: PathBuf,
-    pub fluidsynth: PathBuf,
-    pub env: PathBuf,
-    // pub soundfont: PathBuf,
-}
+fn get_resource_path(app: &AppHandle, resource_type: &str) -> PathBuf {
+    let base = "bin/dependency/";
+    let resource_path = match resource_type {
+        "python" => format!("{base}{VENV_DIR}"),
+        "config" => format!("{base}{CONFIG_FILE}"),
+        "main_py" => format!("{base}{MAIN_PY}"),
+        "env" => format!("{base}{ENV}"),
+        "fluidsynth" => format!("{base}fluidsynth.exe"),
+        _ => {
+            send_to_frontend(app, format!("Unsupported resource type: {}", resource_type), "error");
+            return PathBuf::new();
+        }
+    };
 
-impl ResourcePaths {
-    pub fn new(app: AppHandle) -> Self {
-        let python_path = PathBuf::from("bin/dependency/venv");
-        let config_path = PathBuf::from("bin/dependency/config.json");
-        let main_py_path = PathBuf::from("bin/dependency/main.py");
-        let env = PathBuf::from("bin/dependency/.env");
-        // let soundfont = PathBuf::from("bin/dependency/FluidR3_GM.sf2");
-
-        let fluidsynth_path = if cfg!(target_os = "windows") {
-            PathBuf::from("bin/dependency/fluidsynth.exe")
-        } else {
+    match app.path().resolve(resource_path, tauri::path::BaseDirectory::Resource) {
+        Ok(path) => {
+            if !path.exists() {
+                send_to_frontend(app, format!("Resource not found at {:?}", path), "error");
+                PathBuf::new()
+            } else {
+                path
+            }
+        }
+        Err(e) => {
+            send_to_frontend(app, format!("Failed to resolve path: {}", e), "error");
             PathBuf::new()
-        };
-        
-        let python = app.path().resolve(&python_path, tauri::path::BaseDirectory::Resource)
-            .expect("Failed to resolve python path");
-        let config = app.path().resolve(&config_path, tauri::path::BaseDirectory::Resource)
-            .expect("Failed to resolve config path");
-        let main_py = app.path().resolve(&main_py_path, tauri::path::BaseDirectory::Resource)
-            .expect("Failed to resolve main.py path");
-        let fluidsynth = app.path().resolve(&fluidsynth_path, tauri::path::BaseDirectory::Resource)
-            .expect("Failed to resolve fluidsynth path");
-        
-        Self {
-            python,
-            config,
-            main_py,
-            fluidsynth,
-            env,
-            // soundfont
         }
     }
 }
 
-async fn setup_python(app: &AppHandle, paths: &EnvPaths, resource_paths: &ResourcePaths) -> Result<String, String> {
+async fn setup_python(app: &AppHandle, paths: &EnvPaths) -> Result<String, String> {
     if paths.python.exists() {
         send_to_frontend(app, format!("Virtual environment already exists at {:?}", paths.python), "initialize_setup_processing");
         return Ok("already installed.".to_string());
     }
 
-    copy_resource(&app, &resource_paths.python, &paths.temp_dir).await
+    copy_resource(&app, &get_resource_path(app, "python"), &paths.temp_dir).await
 }
 
-async fn install_pip_package(app: &AppHandle, paths: &EnvPaths, resource_paths: &ResourcePaths, package_name: &str, git_path: &str) -> Result<(), String> {
+async fn install_pip_package(app: &AppHandle, paths: &EnvPaths, package_name: &str, git_path: &str) -> Result<(), String> {
     let check_installed = Command::new(&paths.python)
         .args(&["-m", "pip", "show", package_name])
         .output();
@@ -177,39 +164,38 @@ async fn copy_resource(app: &AppHandle, source: &PathBuf, destination: &PathBuf)
     }
 }
 
-async fn setup_config(app: &AppHandle, paths: &EnvPaths, resource_paths: &ResourcePaths) -> Result<String, String> {
-    if let Err(e) = copy_resource(app, &resource_paths.config, &paths.config).await {
+async fn setup_config(app: &AppHandle, paths: &EnvPaths) -> Result<String, String> {
+    if let Err(e) = copy_resource(app, &get_resource_path(app, "config"), &paths.config).await {
         return Err(e);
     }
 
-    if let Err(e) = copy_resource(app, &resource_paths.main_py, &paths.main_py).await {
+    if let Err(e) = copy_resource(app, &get_resource_path(app, "main_py"), &paths.main_py).await {
         return Err(e);
     }
 
-    copy_resource(app, &resource_paths.env, &paths.env).await
+    copy_resource(app, &get_resource_path(app, "env"), &paths.env).await
 }
 
 #[tauri::command]
 pub async fn initialize_setup(app: AppHandle) {
     let paths = EnvPaths::new();
-    let resource_paths = ResourcePaths::new(app.clone());
 
-    if let Ok(message) = setup_python(&app, &paths, &resource_paths).await {
+    if let Ok(message) = setup_python(&app, &paths).await {
         if message == "already installed.".to_string() {
             send_to_frontend(&app, "Python already installed".to_string(), "initialize_setup_completed");
             return;
         }
-    } else if let Err(e) = setup_python(&app, &paths, &resource_paths).await {
+    } else if let Err(e) = setup_python(&app, &paths).await {
         send_to_frontend(&app, format!("Failed to setup python: {}", e), "initialize_setup_error");
         return;
     }
     
-    if let Err(e) = install_pip_package(&app, &paths, &resource_paths, "music_composer", "git+https://github.com/jebin2/music_composer.git").await {
+    if let Err(e) = install_pip_package(&app, &paths, "music_composer", "git+https://github.com/jebin2/music_composer.git").await {
         send_to_frontend(&app, format!("Failed to install dependencies: {}", e), "initialize_setup_error");
         return;
     }
     
-    if let Err(e) = setup_config(&app, &paths, &resource_paths).await {
+    if let Err(e) = setup_config(&app, &paths).await {
         send_to_frontend(&app, format!("Failed to setup config: {}", e), "initialize_setup_error");
         return;
     }
